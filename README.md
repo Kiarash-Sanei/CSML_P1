@@ -1,0 +1,2 @@
+# Summary of Purpose
+This program calculates and compares the summation of a series in single and double precision, both from left to right and right to left, for multiple randomly generated series lengths. It examines the difference between summation orders and precisions to reveal potential floating-point inaccuracies due to the order of operations and precision types.
