@@ -2,93 +2,130 @@
 #include <time.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
-// Defines the minimum value for generated series lengths and the range for random values
+// Defines the minimum series length and the range for random values
 #define MIN_N 10000
 #define RANGE_N 10000
+#define MULTIPLY 1.0001 // Multiplier used for scaling terms in the summation
 
-// Function to calculate individual terms in the series: each term is computed as (1.0009)^(-x)
+// Function to calculate each term in the series: computed as (1.0009)^(-x)
 double series(int x)
 {
+    // Returns the reciprocal of (1.0009)^x for a given index 'x'
     return pow(pow(1.0009, x), -1);
 }
 
 int main()
 {
-    // Prompt user to specify the number of calculations (i.e., size of arrays)
+    // Prompt the user to enter the number of calculations to perform
     printf("Please type the times that you want the series to be calculated!\n");
     int size;
-    scanf("%d", &size); // Read user input to set the number of series calculations
+    scanf("%d", &size); // Reads the user input to set the number of series calculations
 
-    // Arrays to store results of summations in both single and double precision
-    float answerInSinglePrecisionLeftToRight[size];
-    float answerInSinglePrecisionRightToLeft[size];
-    double answerInDoublePrecisionLeftToRight[size];
-    double answerInDoublePrecisionRightToLeft[size];
-    int list[size]; // Array to store randomly generated series lengths for each calculation
+    // Arrays to store summation results in single and double precision, using different addition orders
+    float answerInSinglePrecisionMultiplyPlus[size];  // Single precision, multiply then sum
+    float answerInSinglePrecisionPlusMultiply[size];  // Single precision, sum then multiply
+    double answerInDoublePrecisionMultiplyPlus[size]; // Double precision, multiply then sum
+    double answerInDoublePrecisionPlusMultiply[size]; // Double precision, sum then multiply
+    int list[size];                                   // Stores randomly generated series lengths for each calculation
 
-    // Initialize the random number generator with the current time for unique random values
+    // Seed the random number generator with the current time for unique random values
     srand(time(NULL));
 
-    // Populate the 'list' array with random series lengths between MIN_N and MIN_N + RANGE_N
+    // Populate 'list' array with random series lengths between MIN_N and MIN_N + RANGE_N
     for (int i = 0; i < size; i++)
     {
-        list[i] = rand() % RANGE_N + MIN_N;
+        list[i] = rand() % RANGE_N + MIN_N; // Generate random series length for each entry in 'list'
     }
 
-    // Compute the series summation for each generated series length in 'list'
+    // Compute the series summation for each series length in 'list'
     for (int i = 0; i < size; i++)
     {
-        // Initialize summation values for left-to-right addition
-        answerInSinglePrecisionLeftToRight[i] = 0;
-        answerInDoublePrecisionLeftToRight[i] = 0;
+        // Initialize summation values
+        answerInSinglePrecisionMultiplyPlus[i] = 0;
+        answerInDoublePrecisionMultiplyPlus[i] = 0;
 
-        // Perform left-to-right summation for both single and double precision
+        // Multiply each term by MULTIPLY, then sum
         for (int j = 0; j < list[i]; j++)
         {
-            answerInSinglePrecisionLeftToRight[i] += series(j);    // Single precision
-            answerInDoublePrecisionLeftToRight[i] += series(j);    // Double precision
+            answerInSinglePrecisionMultiplyPlus[i] += MULTIPLY * series(j); // Single precision
+            answerInDoublePrecisionMultiplyPlus[i] += MULTIPLY * series(j); // Double precision
         }
 
-        // Initialize summation values for right-to-left addition
-        answerInSinglePrecisionRightToLeft[i] = 0;
-        answerInDoublePrecisionRightToLeft[i] = 0;
+        // Initialize summation values
+        answerInSinglePrecisionPlusMultiply[i] = 0;
+        answerInDoublePrecisionPlusMultiply[i] = 0;
 
-        // Perform right-to-left summation for both single and double precision
-        for (int j = list[i] - 1; j >= 0; j--)
+        // Sum terms first, then multiply the final sum by MULTIPLY
+        for (int j = 0; j < list[i]; j++)
         {
-            answerInSinglePrecisionRightToLeft[i] += series(j);    // Single precision
-            answerInDoublePrecisionRightToLeft[i] += series(j);    // Double precision
+            answerInSinglePrecisionPlusMultiply[i] += series(j); // Single precision
+            answerInDoublePrecisionPlusMultiply[i] += series(j); // Double precision
         }
+
+        // Apply multiplication to the final sum
+        answerInSinglePrecisionPlusMultiply[i] *= MULTIPLY;
+        answerInDoublePrecisionPlusMultiply[i] *= MULTIPLY;
     }
 
-    // Output results, comparing the different summation orders and precisions for each N in 'list'
+    // Output the results of different summation orders and precisions for each generated N
     for (int i = 0; i < size; i++)
     {
-        printf("N: %d\n\tLeft To Right:\n\t\tSingle: %f\n\t\tDouble: %lf\n\t\tDifference: %lf\n\tRight To Left:\n\t\tSingle: %f\n\t\tDouble: %lf\n\t\tDifference: %lf\n\tBest Answer: %lf\n",
+        printf("N: %d\n\tMultiply by 2 then summation:\n\t\tSingle: %f\n\t\tDouble: %.20lf\n\tSummation then multiply by 2:\n\t\tSingle: %f\n\t\tDouble: %.20lf\n",
                list[i],
-               answerInSinglePrecisionLeftToRight[i],
-               answerInDoublePrecisionLeftToRight[i],
-               answerInDoublePrecisionLeftToRight[i] - answerInSinglePrecisionLeftToRight[i],
-               answerInSinglePrecisionRightToLeft[i],
-               answerInDoublePrecisionRightToLeft[i],
-               answerInDoublePrecisionRightToLeft[i] - answerInSinglePrecisionRightToLeft[i],
-               answerInDoublePrecisionLeftToRight[i]);
+               answerInSinglePrecisionMultiplyPlus[i],
+               answerInDoublePrecisionMultiplyPlus[i],
+               answerInSinglePrecisionPlusMultiply[i],
+               answerInDoublePrecisionPlusMultiply[i]);
     }
 
-    // Find the maximum value computed in double precision (left-to-right) and its corresponding N
+    // Find the maximum computed value among all summation results
     double bestAnswerCalculated = 0;
     int index = 0;
+    char where[31]; // Stores the method used to calculate the best answer
     for (int i = 0; i < size; i++)
     {
-        if (answerInDoublePrecisionLeftToRight[i] > bestAnswerCalculated)
+        // Check and update best answer for "Double Precision Multiply Plus" method
+        if (answerInDoublePrecisionMultiplyPlus[i] > bestAnswerCalculated)
         {
-            bestAnswerCalculated = answerInDoublePrecisionLeftToRight[i];
+            bestAnswerCalculated = answerInDoublePrecisionMultiplyPlus[i];
             index = i;
+            strcpy(where, "Double Precision Multiply Plus");
+        }
+    }
+    for (int i = 0; i < size; i++)
+    {
+        // Check and update best answer for "Double Precision Plus Multiply" method
+        if (answerInDoublePrecisionPlusMultiply[i] > bestAnswerCalculated)
+        {
+            bestAnswerCalculated = answerInDoublePrecisionPlusMultiply[i];
+            index = i;
+            strcpy(where, "Double Precision Plus Multiply");
+        }
+    }
+    for (int i = 0; i < size; i++)
+    {
+        // Check and update best answer for "Single Precision Multiply Plus" method
+        if (answerInSinglePrecisionMultiplyPlus[i] > bestAnswerCalculated)
+        {
+            bestAnswerCalculated = answerInSinglePrecisionMultiplyPlus[i];
+            index = i;
+            strcpy(where, "Single Precision Multiply Plus");
+        }
+    }
+    for (int i = 0; i < size; i++)
+    {
+        // Check and update best answer for "Single Precision Plus Multiply" method
+        if (answerInSinglePrecisionPlusMultiply[i] > bestAnswerCalculated)
+        {
+            bestAnswerCalculated = answerInSinglePrecisionPlusMultiply[i];
+            index = i;
+            strcpy(where, "Single Precision Plus Multiply");
         }
     }
 
-    // Identify the largest series length N in the 'list' array
+    // Identify the largest series length in the 'list' array
     int maxN = 0;
     for (int i = 0; i < size; i++)
     {
@@ -98,9 +135,9 @@ int main()
         }
     }
 
-    // Output the calculated best answer, the corresponding N, and the maximum N value
-    printf("Theoretical Answer: 1 + 10000 / 9 ~ 1112.111111\nBest Answer that has been calculated: %lf\nN of Best Answer: %d\nMaximum of N: %d\n", 
-           bestAnswerCalculated, list[index], maxN);
+    // Output the best computed answer, method used, corresponding N, and the maximum N value
+    printf("Theoretical Answer: %.4lf * (1 + 10000 / 9) ~ 1113.2232\nBest Answer that has been calculated: %.10lf\n\tThis answer was calculated on %s.\nN of Best Answer: %d\nMaximum of N: %d\n",
+           MULTIPLY, bestAnswerCalculated, where, list[index], maxN);
 
     return 0;
 }
