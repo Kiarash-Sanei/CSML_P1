@@ -80,37 +80,27 @@ The output includes:
 This code effectively demonstrates how floating-point arithmetic in single and double precision can reach a point where further additions to a sum have no effect. This is due to the precision limitations inherent in floating-point formats, with single precision losing accuracy sooner than double precision. The results offer a practical understanding of precision limits, which is essential in numerical computing and scientific applications where floating-point operations are prevalent.
 
 # `3.c`
+## Code Structure and Purpose
+The code defines six constants of various magnitudes: a, b, c, d, e, and f. These constants include both very small and large values. The code then calculates the sums of these values in different orders to test if addition remains commutative and associative in floating-point arithmetic.
 
-## Code Description
+## Floating-Point Arithmetic and the commutativity
+In mathematical theory, addition is a commutative operation, meaning that for any two real numbers $a + b = b + a$ always holds. However, in computer systems, numbers are represented in a finite, approximate way using floating-point formats (such as IEEE 754 double precision). This finite representation introduces potential for precision errors, especially when numbers of vastly different magnitudes are involved.
 
-This C program explores the effects of floating-point precision and summation order on the computed results of a mathematical series. By performing summations in multiple ways using both single and double precision, the program demonstrates how precision and the order of operations can yield different results. It uses randomized series lengths for each calculation, evaluates the sum with various methods, and identifies the maximum computed result among them.
+### Double-Precision Floating-Point Representation
+In IEEE 754 double precision, a number is represented by 64 bits, consisting of:
+1 sign bit,
+11 bits for the exponent, and
+52 bits for the significand (or fraction).
+This format provides high precision but is limited to approximately 15-17 significant decimal digits. When adding numbers of greatly differing magnitudes, the smaller number can effectively be "lost" due to this limited precision, leading to results that may differ based on the order of operations.
 
-## Aim
+### Compiler Optimizations and Reordering
+Modern compilers often implement optimizations to minimize such precision loss, prioritizing the addition of larger-magnitude values first. This is because:
 
-The main objectives are to:
+- Reordering expressions to add larger numbers first can help retain as much precision as possible.
+- Compilers like GCC and Clang include such optimizations under specific flags (e.g., -ffast-math), which allows the compiler to reorder operations based on magnitude to reduce cumulative rounding errors.
+If compiled without strict floating-point accuracy settings, the compiler may choose to reorder additions to maintain precision, which is why the output may indicate that $a + b = b + a$. This behavior is typically desirable, as it minimizes the chance of visible errors in calculations.
 
-Compare how different methods of summation—whether multiplying each term before summing or summing first and then multiplying—affect the final result.
-Examine the impact of single (float) vs. double (double) precision in calculations.
-Determine the highest computed result across all methods and configurations to assess the influence of summation order and precision on accuracy.
-
-## Final Output:
-
-The program displays the best-computed result, the method that produced it, the corresponding series length (N), and the maximum value of N among all generated series lengths.
-
+### Expected Behavior Without Compiler Optimization
+Without these optimizations, calculations may exhibit order-dependent results, particularly in scenarios where numbers of vastly different magnitudes are added repeatedly (such as in cumulative sums or algorithms sensitive to numerical precision). In cases where optimization flags are turned off, floating-point operations would proceed strictly in the written order, potentially revealing more instances of floating-point precision loss.
 ## Result
-
-### The final output provides insight into:
-
-#### Precision and Summation Order Effects:
-
-The results show how differences in precision (single vs. double) and summation order (multiply-then-sum vs. sum-then-multiply) influence the final summation values.
-
-#### Best Computed Result Identification:
-
-The program identifies the highest result across all summation methods, indicating which approach maximizes accuracy.
-
-#### Comparison with Theoretical Value:
-
-The computed results are compared with the theoretical approximation, highlighting discrepancies potentially due to floating-point precision or order of operations.
-
-This exploration serves as a practical example of how computational approaches can affect outcomes in scientific calculations, with implications for accuracy and precision in numerical methods.
+For my compiler, addition is commutative but not associative.
